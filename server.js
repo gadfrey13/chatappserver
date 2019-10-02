@@ -9,6 +9,10 @@ io.on("connection", socket => {
   socket.on("new-user", name => {
     users[socket.id] = name; //set the key to unique value of the socket
     socket.broadcast.emit("user-connected", name);
+    socket.broadcast.emit("users-online", Object.keys(users).length);
+    socket.emit("users-online", Object.keys(users).length);
+    socket.emit("users-names", users);
+    socket.broadcast.emit("users-names", users);
   });
 
   //broadcast the message
@@ -25,6 +29,15 @@ io.on("connection", socket => {
       bool = false;
     }
     socket.emit("unique-user", bool);
+  });
+
+  socket.on("disconnect", () => {
+    if (users[socket.id]) {
+      socket.broadcast.emit("user-disconnected", users[socket.id]);
+      socket.broadcast.emit("users-online", Object.keys(users).length);
+      socket.broadcast.emit("disconnect-user-key", socket.id);
+      delete users[socket.id];
+    }
   });
 });
 
